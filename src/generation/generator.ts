@@ -22,7 +22,7 @@ export async function generateAnswer(
   const chunks = await retrieve(query, {
     topK: 6,
     ticker: options.ticker,
-    minScore: 0.3,
+    minScore: 0.2,
   });
 
   // Step 2 — run guardrails

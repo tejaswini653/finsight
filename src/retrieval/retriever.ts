@@ -22,7 +22,7 @@ export async function retrieve(
   options: RetrievalOptions = {}
 ): Promise<RetrievedChunk[]> {
   const startTime = Date.now();
-  const minScore = options.minScore ?? 0.3;
+  const minScore = options.minScore ?? 0.2;
 
   // Step 1 — embed the user's question into a vector
   const queryVector = await embed(query);

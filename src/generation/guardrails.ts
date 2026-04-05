@@ -23,7 +23,7 @@ export function checkGuardrails(
 
   // Top chunk score too low — retrieval found something but it's weak
   const topScore = chunks[0].score;
-  if (topScore < 0.5) {
+  if (topScore < 0.2) {
     return {
       safe: false,
       reason: `Retrieved context has low relevance (score: ${topScore.toFixed(2)}). Cannot answer reliably.`,
@@ -52,7 +52,7 @@ export function checkGuardrails(
   }
 
   // Good confidence
-  if (topScore >= 0.75) {
+  if (topScore >= 0.5) {
     return { safe: true, confidence: "high" };
   }
 

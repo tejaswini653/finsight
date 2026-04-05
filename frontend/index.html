@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FinSight — Financial Document Intelligence</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+    .header { border-bottom: 1px solid #1e2533; padding: 20px 40px; display: flex; align-items: center; gap: 12px; }
+    .logo { width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+    .header h1 { font-size: 18px; font-weight: 600; color: #f1f5f9; }
+    .header span { font-size: 13px; color: #64748b; margin-left: 4px; }
+    .badge { background: #1e3a5f; color: #60a5fa; font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-left: auto; }
+    .container { max-width: 860px; margin: 0 auto; padding: 40px 24px; }
+    .ticker-row { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .ticker-btn { background: #1e2533; border: 1px solid #2d3748; color: #94a3b8; padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+    .ticker-btn:hover { background: #2d3748; color: #e2e8f0; }
+    .ticker-btn.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
+    .input-area { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .input-area label { font-size: 12px; color: #64748b; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    textarea { width: 100%; background: transparent; border: none; outline: none; color: #e2e8f0; font-size: 15px; resize: none; font-family: inherit; line-height: 1.6; }
+    .ask-btn { width: 100%; padding: 13px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+    .ask-btn:hover { background: #2563eb; }
+    .ask-btn:disabled { background: #1e3a5f; color: #4b6a8f; cursor: not-allowed; }
+    .suggestions { margin-bottom: 24px; }
+    .suggestions p { font-size: 12px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { background: #1a1f2e; border: 1px solid #2d3748; color: #94a3b8; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+    .chip:hover { border-color: #3b82f6; color: #60a5fa; background: #1e3a5f; }
+    .result { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; margin-top: 24px; display: none; }
+    .result.visible { display: block; }
+    .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .confidence { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .confidence.high { background: #14532d; color: #4ade80; }
+    .confidence.medium { background: #1c3a5f; color: #60a5fa; }
+    .confidence.low { background: #4a1d0c; color: #fb923c; }
+    .answer-text { font-size: 15px; line-height: 1.8; color: #cbd5e1; white-space: pre-wrap; }
+    .sources { margin-top: 20px; padding-top: 16px; border-top: 1px solid #2d3748; }
+    .sources p { font-size: 11px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .source-tag { display: inline-block; background: #1e2533; border: 1px solid #2d3748; color: #64748b; font-size: 12px; padding: 3px 10px; border-radius: 6px; margin: 2px; }
+    .meta { margin-top: 12px; font-size: 12px; color: #4b5563; }
+    .loading { display: none; text-align: center; padding: 40px; }
+    .loading.visible { display: block; }
+    .spinner { width: 32px; height: 32px; border: 2px solid #2d3748; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .step { font-size: 13px; color: #64748b; margin-top: 6px; }
+    .built-with { text-align: center; margin-top: 48px; font-size: 12px; color: #374151; }
+    .built-with span { color: #4b6a8f; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">F</div>
+  <h1>FinSight <span>Financial Document Intelligence</span></h1>
+  <div class="badge">RAG + Agentic AI</div>
+</div>
+
+<div class="container">
+
+  <div class="ticker-row">
+    <span style="font-size:12px;color:#64748b;padding:7px 0;margin-right:4px;">Company:</span>
+    <button class="ticker-btn active" onclick="selectTicker('AAPL', this)">AAPL — Apple</button>
+    <button class="ticker-btn" onclick="selectTicker('MSFT', this)">MSFT — Microsoft</button>
+    <button class="ticker-btn" onclick="selectTicker('AXP', this)">AXP — Amex</button>
+    <button class="ticker-btn" onclick="selectTicker('TSLA', this)">TSLA — Tesla</button>
+  </div>
+
+  <div class="suggestions">
+    <p>Try asking</p>
+    <div class="suggestion-chips">
+      <div class="chip" onclick="setQuestion('What were the main risk factors?')">Main risk factors</div>
+      <div class="chip" onclick="setQuestion('What was the total revenue?')">Total revenue</div>
+      <div class="chip" onclick="setQuestion('What products and services does the company offer?')">Products & services</div>
+      <div class="chip" onclick="setQuestion('What is the company strategy going forward?')">Strategy & outlook</div>
+      <div class="chip" onclick="setQuestion('What were the key financial highlights?')">Financial highlights</div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <label>Ask a question about the SEC 10-K filing</label>
+    <textarea id="question" rows="3" placeholder="e.g. What were Apple's main risk factors in 2025?"></textarea>
+  </div>
+
+  <button class="ask-btn" id="askBtn" onclick="ask()">Ask FinSight</button>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div>Searching SEC filings...</div>
+    <div class="step" id="loadingStep">Retrieving relevant document sections</div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-header">
+      <span style="font-size:13px;color:#64748b;">Answer</span>
+      <span class="confidence" id="confidence">high</span>
+    </div>
+    <div class="answer-text" id="answerText"></div>
+    <div class="sources" id="sourcesDiv">
+      <p>Sources</p>
+      <div id="sourcesList"></div>
+    </div>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <div class="built-with">
+    Built with <span>TypeScript · OpenAI GPT-4o · Pinecone · LangChain · SEC EDGAR API</span>
+  </div>
+</div>
+
+<script>
+  let selectedTicker = 'AAPL';
+
+  function selectTicker(ticker, btn) {
+    selectedTicker = ticker;
+    document.querySelectorAll('.ticker-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function setQuestion(q) {
+    document.getElementById('question').value = q;
+  }
+
+  async function ask() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) return;
+
+    const btn = document.getElementById('askBtn');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
+    const answerText = document.getElementById('answerText');
+    const loadingStep = document.getElementById('loadingStep');
+
+    btn.disabled = true;
+    loading.classList.add('visible');
+    result.classList.remove('visible');
+    answerText.textContent = '';
+
+    const steps = [
+      'Embedding your question...',
+      'Searching SEC filing vectors in Pinecone...',
+      'Retrieving relevant document sections...',
+      'Running guardrails and confidence check...',
+      'Generating grounded answer with GPT-4o...',
+    ];
+
+    let stepIdx = 0;
+    const stepInterval = setInterval(() => {
+      if (stepIdx < steps.length) {
+        loadingStep.textContent = steps[stepIdx++];
+      }
+    }, 900);
+
+    try {
+      const res = await fetch('/api/query/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, ticker: selectedTicker }),
+      });
+
+      clearInterval(stepInterval);
+      loading.classList.remove('visible');
+      result.classList.add('visible');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let finalData = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = JSON.parse(line.slice(6));
+
+          if (data.type === 'token') {
+            answerText.textContent += data.content;
+          } else if (data.type === 'done') {
+            finalData = data;
+          }
+        }
+      }
+
+      if (finalData) {
+        const conf = document.getElementById('confidence');
+        conf.textContent = finalData.confidence;
+        conf.className = 'confidence ' + finalData.confidence;
+
+        const sourcesList = document.getElementById('sourcesList');
+        sourcesList.innerHTML = finalData.sources
+          .map(s => `<span class="source-tag">${s.ticker} ${s.source} · ${(s.score * 100).toFixed(0)}%</span>`)
+          .join('');
+
+        document.getElementById('meta').textContent =
+          `Latency: ${finalData.latencyMs}ms · Audit ID: ${finalData.auditId}`;
+      }
+    } catch (err) {
+      clearInterval(stepInterval);
+      loading.classList.remove('visible');
+      result.classList.add('visible');
+      answerText.textContent = 'Error: ' + err.message;
+    }
+
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>
