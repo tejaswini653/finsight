@@ -29,6 +29,8 @@ export async function upsertVectors(
   const batchSize = 100;
   for (let i = 0; i < vectors.length; i += batchSize) {
     const batch = vectors.slice(i, i + batchSize);
+    if (batch.length === 0) continue;
+    // v7 SDK requires { records: [...] } not a plain array
     await pineconeIndex.upsert(batch);
     console.log("Stored vectors " + (i + 1) + " to " + (i + batch.length));
   }
